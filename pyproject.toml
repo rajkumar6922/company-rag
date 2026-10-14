@@ -1,0 +1,23 @@
+[project]
+name = "company-rag"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "chromadb",
+    "gradio>=6.30.0",
+    "langchain-chroma>=1.1.0",
+    "langchain-core>=1.6.9",
+    "langchain-huggingface>=1.2.3",
+    "langchain-openai>=1.7.0",
+    "numpy>=2.5.3",
+    "openai>=3.28.0",
+    "pypdf",
+    "python-docx",
+    "python-dotenv>=1.2.4",
+    "sentence-transformers>=6.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.4.0",
+]
