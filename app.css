@@ -252,6 +252,73 @@
 .dl-chunk details[open] .dl-preview { display: none; }
 .dl-chunk details:not([open]) .dl-full { display: none; }
 
+/* ---------- Tabs ---------- */
+#dl-tabs { border: 0 !important; background: transparent !important; }
+#dl-tabs [role="tablist"] { gap: 6px; border-bottom: 1px solid var(--dl-border) !important; margin-bottom: 16px; }
+#dl-tabs [role="tab"] {
+  font-weight: 500; color: var(--dl-muted) !important; border: 0 !important;
+  border-bottom: 2px solid transparent !important; border-radius: 0 !important;
+  background: transparent !important; padding: 8px 14px !important;
+  transition: color var(--dl-ease), border-color var(--dl-ease);
+}
+#dl-tabs [role="tab"]:hover { color: var(--dl-text) !important; }
+#dl-tabs [role="tab"][aria-selected="true"] { color: var(--dl-accent) !important; border-bottom-color: var(--dl-accent) !important; }
+#dl-tabs [role="tabpanel"] { padding: 0 !important; border: 0 !important; background: transparent !important; }
+
+/* ---------- About tab ---------- */
+.dl-about { display: flex; flex-direction: column; gap: 18px; }
+.dl-card {
+  background: var(--dl-surface); border: 1px solid var(--dl-border);
+  border-radius: var(--dl-radius); padding: 22px 24px;
+  transition: border-color var(--dl-ease), box-shadow var(--dl-ease);
+}
+.dl-card:hover { border-color: rgba(34, 211, 238, 0.35); box-shadow: var(--dl-glow); }
+.dl-card-title {
+  margin: 0 0 14px !important; font-size: 19px !important; font-weight: 650 !important;
+  letter-spacing: -0.01em; width: fit-content;
+  background-image: linear-gradient(90deg, var(--dl-text) 0%, var(--dl-text) 50%, var(--dl-accent) 100%) !important;
+  -webkit-background-clip: text !important; background-clip: text !important;
+  -webkit-text-fill-color: transparent; color: transparent !important;
+}
+.dl-card-text { margin: 0 !important; max-width: 78ch; font-size: 15px; line-height: 1.7; color: var(--dl-muted) !important; }
+
+/* Pipeline: horizontal pills with arrows, vertical on mobile. */
+.dl-flow { display: flex; align-items: stretch; gap: 8px; list-style: none; margin: 0 !important; padding: 0 !important; }
+.dl-flow-step {
+  flex: 1 1 0; min-width: 0; margin: 0 !important;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--dl-border); background: var(--dl-surface-2);
+  transition: border-color var(--dl-ease), box-shadow var(--dl-ease), transform var(--dl-ease);
+}
+.dl-flow-step:hover { border-color: var(--dl-accent); box-shadow: var(--dl-glow); transform: translateY(-2px); }
+.dl-flow-num {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 12px; font-weight: 600; background: var(--dl-accent-soft); color: var(--dl-accent);
+}
+.dl-flow-step b { font-size: 14px; color: var(--dl-text); }
+.dl-flow-step small { font-size: 12.5px; line-height: 1.45; color: var(--dl-muted); }
+.dl-flow-arrow { align-self: center; margin: 0 !important; color: var(--dl-accent); font-size: 16px; opacity: 0.8; }
+
+/* Tech stack badges. */
+.dl-stack {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px; list-style: none; margin: 0 !important; padding: 0 !important;
+}
+.dl-badge {
+  margin: 0 !important; display: flex; flex-direction: column; gap: 3px;
+  padding: 11px 14px; border-radius: 12px;
+  border: 1px solid var(--dl-border); background: var(--dl-surface-2);
+  transition: border-color var(--dl-ease), box-shadow var(--dl-ease);
+}
+.dl-badge:hover { border-color: var(--dl-accent); box-shadow: var(--dl-glow); }
+.dl-badge b { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--dl-accent); }
+.dl-badge small { font-size: 12.5px; line-height: 1.4; color: var(--dl-muted); }
+
+.dl-about-footer { margin: 4px 0 0 !important; text-align: center; font-size: 13px; color: var(--dl-muted) !important; }
+.dl-about-footer a { color: var(--dl-accent) !important; text-decoration: none; font-family: var(--font-mono); font-size: 12.5px; }
+.dl-about-footer a:hover { text-decoration: underline; }
+
 /* ---------- Footer ---------- */
 .dl-footer {
   margin: 22px 0 8px; padding-top: 16px; text-align: center;
@@ -267,4 +334,7 @@
   .dl-inputrow { flex-wrap: wrap !important; }
   .dl-inputrow > :first-child { flex: 1 1 100% !important; }
   .dl-steps .dl-sep { display: none; }
+  .dl-card { padding: 18px 16px; }
+  .dl-flow { flex-direction: column; }
+  .dl-flow-arrow { transform: rotate(90deg); }
 }

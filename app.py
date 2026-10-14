@@ -384,6 +384,63 @@ def clear_chat(session):
     return session, [], CONTEXT_EMPTY
 
 
+# --- About tab (static text only) ---------------------------------------------
+REPO_URL = "https://github.com/rajkumar6922/company-rag"
+
+ABOUT_STEPS = [
+    ("Upload", "PDF, DOCX, TXT, MD"),
+    ("Chunk", "about 500 characters, 100 overlap"),
+    ("Embed", "all-MiniLM-L6-v2, 384 dimensions"),
+    ("Retrieve", "top 5 by cosine similarity in Chroma"),
+    ("Answer", "gpt-4.1-nano, only from retrieved context, with sources"),
+]
+
+ABOUT_STACK = [
+    ("Python 3.12", "language"),
+    ("Gradio", "web UI"),
+    ("ChromaDB", "vector database (in-memory, one collection per session)"),
+    ("all-MiniLM-L6-v2", "embedding model"),
+    ("OpenAI gpt-4.1-nano", "answer generation"),
+    ("pypdf / python-docx", "document parsing"),
+    ("uv", "package management"),
+    ("Hugging Face Spaces", "hosting"),
+    ("GitHub", "source control"),
+]
+
+_ARROW = '<li class="dl-flow-arrow" aria-hidden="true">→</li>'
+
+ABOUT_HTML = f"""
+<div class="dl-about">
+  <section class="dl-card">
+    <h2 class="dl-card-title">Is RAG still alive?</h2>
+    <p class="dl-card-text">People keep saying long context windows killed RAG. In practice, retrieval
+    just changed shape. Stuffing everything into the prompt is slower and more expensive, and models can
+    still miss details buried in the middle of a long input. So RAG lives on in new forms: agentic RAG
+    (an AI agent decides when and what to search), retrieval as a tool the model calls, memory systems,
+    and context engineering (choosing exactly what goes into the prompt). DocLens is the foundation those
+    all build on: chunk, embed, retrieve, answer with sources.</p>
+  </section>
+
+  <section class="dl-card">
+    <h2 class="dl-card-title">How DocLens works</h2>
+    <ol class="dl-flow">{_ARROW.join(
+        f'<li class="dl-flow-step"><span class="dl-flow-num">{i}</span>'
+        f'<b>{name}</b><small>{detail}</small></li>'
+        for i, (name, detail) in enumerate(ABOUT_STEPS, start=1)
+    )}</ol>
+  </section>
+
+  <section class="dl-card">
+    <h2 class="dl-card-title">Tech stack</h2>
+    <ul class="dl-stack">{"".join(
+        f'<li class="dl-badge"><b>{name}</b><small>{role}</small></li>' for name, role in ABOUT_STACK
+    )}</ul>
+  </section>
+
+  <p class="dl-about-footer">Built by Rajkumar Bathini ·
+    <a href="{REPO_URL}" target="_blank" rel="noopener noreferrer">{REPO_URL.removeprefix("https://")}</a></p>
+</div>"""
+
 # --- Layout ----------------------------------------------------------------------
 with gr.Blocks(title="DocLens · Ask your documents", analytics_enabled=False) as demo:
     session_state = gr.State(None, time_to_live=SESSION_TTL_SECONDS, delete_callback=drop_session)
@@ -391,51 +448,56 @@ with gr.Blocks(title="DocLens · Ask your documents", analytics_enabled=False) a
 
     hero = gr.HTML(hero_html(None))
 
-    with gr.Row(elem_id="dl-main", equal_height=False):
-        # Left: documents
-        with gr.Column(scale=35, min_width=300, elem_classes="dl-panel"):
-            gr.HTML(
-                '<div class="dl-panel-title">Your documents'
-                f"<small>PDF · DOCX · TXT · MD, max {MAX_FILE_MB} MB</small></div>"
-            )
-            dropzone = gr.File(
-                file_count="multiple",
-                file_types=list(SUPPORTED_TYPES),
-                type="filepath",
-                show_label=False,
-                height=150,
-                elem_id="dl-drop",
-            )
-            notices = gr.HTML("", elem_classes="dl-notice-block")
-            docs = gr.HTML(docs_html(None))
-            meters = gr.HTML(meters_html(None))
+    with gr.Tabs(elem_id="dl-tabs"):
+        with gr.Tab("Chat"):
+            with gr.Row(elem_id="dl-main", equal_height=False):
+                # Left: documents
+                with gr.Column(scale=35, min_width=300, elem_classes="dl-panel"):
+                    gr.HTML(
+                        '<div class="dl-panel-title">Your documents'
+                        f"<small>PDF · DOCX · TXT · MD, max {MAX_FILE_MB} MB</small></div>"
+                    )
+                    dropzone = gr.File(
+                        file_count="multiple",
+                        file_types=list(SUPPORTED_TYPES),
+                        type="filepath",
+                        show_label=False,
+                        height=150,
+                        elem_id="dl-drop",
+                    )
+                    notices = gr.HTML("", elem_classes="dl-notice-block")
+                    docs = gr.HTML(docs_html(None))
+                    meters = gr.HTML(meters_html(None))
 
-        # Right: chat
-        with gr.Column(scale=65, min_width=320, elem_classes="dl-panel"):
-            gr.HTML('<div class="dl-panel-title">Ask your documents<small>Answers cite their sources</small></div>')
-            with gr.Row(elem_classes="dl-chips"):
-                chips = [gr.Button(visible=False, size="sm", elem_classes="dl-chip") for _ in range(3)]
-            chatbot = gr.Chatbot(
-                value=[],
-                show_label=False,
-                height=460,
-                layout="bubble",
-                placeholder=WELCOME,
-                buttons=["copy"],
-                elem_id="chat",
-            )
-            with gr.Row(elem_classes="dl-inputrow"):
-                question_box = gr.Textbox(
-                    placeholder="Ask a question about your documents…",
-                    show_label=False,
-                    container=False,
-                    max_lines=4,
-                    scale=8,
-                )
-                ask_btn = gr.Button("Ask", variant="primary", scale=1, min_width=80)
-                clear_btn = gr.Button("New chat", scale=1, min_width=96, elem_classes="dl-ghost")
-            with gr.Accordion("Retrieved context", open=False, elem_id="dl-context"):
-                context = gr.HTML(CONTEXT_EMPTY)
+                # Right: chat
+                with gr.Column(scale=65, min_width=320, elem_classes="dl-panel"):
+                    gr.HTML('<div class="dl-panel-title">Ask your documents<small>Answers cite their sources</small></div>')
+                    with gr.Row(elem_classes="dl-chips"):
+                        chips = [gr.Button(visible=False, size="sm", elem_classes="dl-chip") for _ in range(3)]
+                    chatbot = gr.Chatbot(
+                        value=[],
+                        show_label=False,
+                        height=460,
+                        layout="bubble",
+                        placeholder=WELCOME,
+                        buttons=["copy"],
+                        elem_id="chat",
+                    )
+                    with gr.Row(elem_classes="dl-inputrow"):
+                        question_box = gr.Textbox(
+                            placeholder="Ask a question about your documents…",
+                            show_label=False,
+                            container=False,
+                            max_lines=4,
+                            scale=8,
+                        )
+                        ask_btn = gr.Button("Ask", variant="primary", scale=1, min_width=80)
+                        clear_btn = gr.Button("New chat", scale=1, min_width=96, elem_classes="dl-ghost")
+                    with gr.Accordion("Retrieved context", open=False, elem_id="dl-context"):
+                        context = gr.HTML(CONTEXT_EMPTY)
+
+        with gr.Tab("About"):
+            gr.HTML(ABOUT_HTML)
 
     gr.HTML(f'<footer class="dl-footer">{FOOTER}</footer>')
 
