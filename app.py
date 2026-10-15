@@ -10,7 +10,7 @@ from pathlib import Path
 
 import gradio as gr
 
-from answer import answer_question
+from answer import MissingAPIKeyError, answer_question
 from chunker import chunk_text
 from loader import SUPPORTED_TYPES, load_text
 from store import add_document, create_collection, delete_collection
@@ -359,6 +359,9 @@ def respond(question, session):
             # Backticks become amber chips; strip any backticks inside names.
             chips = " ".join(f"`{s.replace('`', '')}`" for s in sources)
             reply = f"{answer}\n\n**Sources:** {chips}" if sources else answer
+        except MissingAPIKeyError:
+            log.error("OPENAI_API_KEY is not set")
+            reply = "DocLens isn't configured yet: the OpenAI API key is missing. Please try again later."
         except Exception:
             log.exception("Answering failed")
             reply = "Sorry, I couldn't get an answer right now. Please try again in a moment."

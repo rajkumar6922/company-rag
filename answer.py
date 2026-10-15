@@ -1,5 +1,7 @@
 """Answer questions from a session's documents with retrieval + an OpenAI model."""
 
+import os
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -19,10 +21,25 @@ EMPTY_MESSAGE = (
     "Please upload a document first, then ask your question."
 )
 
-# Read OPENAI_API_KEY from .env into the environment; OpenAI() picks it up
-# from there. The key is never printed.
+# Read OPENAI_API_KEY from .env (locally) or the environment (Space secret);
+# OpenAI() picks it up from there. The key is never printed.
 load_dotenv()
-_client = OpenAI()
+_client = None
+
+
+class MissingAPIKeyError(RuntimeError):
+    """Raised when OPENAI_API_KEY is not set."""
+
+
+def _get_client() -> OpenAI:
+    # Created on first use so the app can start (and show a friendly error)
+    # even when the key is missing.
+    global _client
+    if _client is None:
+        if not os.getenv("OPENAI_API_KEY"):
+            raise MissingAPIKeyError("OPENAI_API_KEY is not set.")
+        _client = OpenAI()
+    return _client
 
 
 def _build_context(hits: list[dict]) -> str:
@@ -63,7 +80,7 @@ def answer_question(collection, question, history=None, k=5, debug=False):
     messages += history or []
     messages.append({"role": "user", "content": question})
 
-    response = _client.chat.completions.create(model=MODEL, messages=messages)
+    response = _get_client().chat.completions.create(model=MODEL, messages=messages)
     answer = response.choices[0].message.content
 
     # 5. Sources = the distinct files whose chunks were given to the model,
